@@ -1,0 +1,22 @@
+{
+  "name": "dandiya-night-pass",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.8",
+    "express": "^5.3.0",
+    "html5-qrcode": "^2.3.8",
+    "mongoose": "^9.11.2",
+    "qrcode": "^1.5.4"
+  }
+}

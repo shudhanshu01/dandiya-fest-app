@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gate Scanner - Dandiya Fest 2026</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0b0f19;
+      --card-bg: rgba(22, 30, 49, 0.85);
+      --card-border: rgba(255, 255, 255, 0.1);
+      --gold: #f59e0b;
+      --gold-glow: rgba(245, 158, 11, 0.4);
+      --success: #10b981;
+      --success-glow: rgba(16, 185, 129, 0.4);
+      --error: #ef4444;
+      --error-glow: rgba(239, 68, 68, 0.4);
+      --festive-pink: #ec4899;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: radial-gradient(circle at top, #1e1b4b 0%, #0b0f19 70%);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      background: linear-gradient(135deg, #f59e0b, #ec4899);
+      color: #fff;
+      border-radius: 9999px;
+      margin-bottom: 8px;
+      box-shadow: 0 0 15px var(--gold-glow);
+    }
+
+    h1 {
+      font-size: 26px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #ffffff 40%, #fcd34d 100%);
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 4px;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 520px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .stat-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 10px 14px;
+      text-align: center;
+      backdrop-filter: blur(12px);
+    }
+
+    .stat-value {
+      font-size: 20px;
+      font-weight: 800;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 2px;
+    }
+
+    .scanner-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(16px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .scanner-controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    select {
+      flex: 1;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #fff;
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+      cursor: pointer;
+    }
+
+    select:focus {
+      border-color: var(--gold);
+    }
+
+    .btn-icon {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-icon:hover {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    .btn-icon.active {
+      background: var(--gold);
+      color: #000;
+      border-color: var(--gold);
+      box-shadow: 0 0 12px var(--gold-glow);
+    }
+
+    /* Webcam Viewport */
+    .viewport-wrapper {
+      position: relative;
+      width: 100%;
+      min-height: 280px;
+      background: #050811;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #reader {
+      width: 100% !important;
+      border: none !important;
+    }
+
+    #reader video {
+      border-radius: 14px;
+      object-fit: cover !important;
+      width: 100% !important;
+    }
+
+    /* Target overlay box */
+    .scanner-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .reticle {
+      width: 220px;
+      height: 220px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 16px;
+      position: relative;
+      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.45);
+      overflow: hidden;
+    }
+
+    /* Reticle Corners */
+    .reticle::before, .reticle::after {
+      content: '';
+      position: absolute;
+      width: 24px;
+      height: 24px;
+      border-color: var(--gold);
+      pointer-events: none;
+    }
+
+    .reticle::before {
+      top: -2px;
+      left: -2px;
+      border-top: 4px solid var(--gold);
+      border-left: 4px solid var(--gold);
+      border-top-left-radius: 14px;
+    }
+
+    .reticle::after {
+      bottom: -2px;
+      right: -2px;
+      border-bottom: 4px solid var(--gold);
+      border-right: 4px solid var(--gold);
+      border-top-right-radius: 14px;
+    }
+
+    /* Laser Scanning Line Animation */
+    .laser-line {
+      position: absolute;
+      width: 100%;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, #f59e0b, #ec4899, transparent);
+      box-shadow: 0 0 12px #f59e0b;
+      top: 0;
+      animation: scanLaser 2s ease-in-out infinite alternate;
+    }
+
+    @keyframes scanLaser {
+      0% { top: 0%; opacity: 0.8; }
+      100% { top: 100%; opacity: 1; }
+    }
+
+    /* Verification Status Banner */
+    #statusBanner {
+      display: none;
+      border-radius: 16px;
+      padding: 16px 18px;
+      animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(12px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .status-granted {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(6, 95, 70, 0.3));
+      border: 1px solid var(--success);
+      box-shadow: 0 0 25px var(--success-glow);
+    }
+
+    .status-denied {
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(153, 27, 27, 0.3));
+      border: 1px solid var(--error);
+      box-shadow: 0 0 25px var(--error-glow);
+    }
+
+    .status-pending {
+      background: linear-gradient(135deg, rgba(96, 165, 250, 0.2), rgba(30, 64, 175, 0.3));
+      border: 1px solid #60a5fa;
+      box-shadow: 0 0 25px rgba(96, 165, 250, 0.3);
+    }
+
+    .status-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .status-icon {
+      font-size: 28px;
+      line-height: 1;
+    }
+
+    .status-title {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: 0.3px;
+    }
+
+    .status-detail {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.9);
+      line-height: 1.4;
+    }
+
+    /* Manual Input Option */
+    .manual-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 16px;
+    }
+
+    .manual-label {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    .input-group input {
+      flex: 1;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 10px;
+      color: #fff;
+      padding: 12px 14px;
+      font-size: 15px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .input-group input:focus {
+      border-color: var(--gold);
+    }
+
+    .btn-verify {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 20px;
+      font-size: 14px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+
+    .btn-verify:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(16, 185, 129, 0.5);
+    }
+
+    /* Recent Scans Log */
+    .history-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 16px;
+    }
+
+    .history-title {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 220px;
+      overflow-y: auto;
+    }
+
+    .history-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 13px;
+    }
+
+    .history-left {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .history-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+    }
+
+    .history-time {
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    .history-name {
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .history-roll {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .history-tag {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      text-transform: uppercase;
+    }
+
+    .tag-granted {
+      background: rgba(16, 185, 129, 0.2);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.4);
+    }
+
+    .tag-duplicate {
+      background: rgba(245, 158, 11, 0.2);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.4);
+    }
+
+    .tag-invalid {
+      background: rgba(239, 68, 68, 0.2);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.4);
+    }
+
+    /* Cooldown indicator */
+    .scan-feedback-flash {
+      position: absolute;
+      inset: 0;
+      background: rgba(255, 255, 255, 0.3);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.15s ease-out;
+      border-radius: 14px;
+    }
+
+    .flash-active {
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="badge">Gate Security Portal</div>
+    <h1>Dandiya Fest Gate Scanner</h1>
+    <p class="subtitle">Live camera QR pass verification & entry monitoring</p>
+  </div>
+
+  <div class="container">
+
+    <!-- Quick Statistics -->
+    <div class="stats-bar">
+      <div class="stat-card">
+        <div class="stat-value" id="statTotal" style="color: #60a5fa;">0</div>
+        <div class="stat-label">Total Scans</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="statGranted" style="color: #34d399;">0</div>
+        <div class="stat-label">Admitted</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="statDenied" style="color: #f87171;">0</div>
+        <div class="stat-label">Flagged / Dups</div>
+      </div>
+    </div>
+
+    <!-- Scanner Card -->
+    <div class="scanner-card">
+      <div class="scanner-controls">
+        <select id="cameraSelect" onchange="onCameraSelectChange()">
+          <option value="">Detecting cameras...</option>
+        </select>
+        <button id="toggleCameraBtn" class="btn-icon" onclick="toggleCamera()">
+          <span id="cameraBtnIcon">📹</span>
+          <span id="cameraBtnText">Start Cam</span>
+        </button>
+        <button id="soundToggleBtn" class="btn-icon active" onclick="toggleSound()" title="Toggle Audio Feedback">
+          🔊 Sound
+        </button>
+      </div>
+
+      <!-- Live Webcam Viewport -->
+      <div class="viewport-wrapper">
+        <div id="reader"></div>
+        <div class="scanner-overlay" id="overlay">
+          <div class="reticle">
+            <div class="laser-line"></div>
+          </div>
+        </div>
+        <div class="scan-feedback-flash" id="flashOverlay"></div>
+      </div>
+    </div>
+
+    <!-- Status Banner for Scan Results -->
+    <div id="statusBanner">
+      <div class="status-head">
+        <div class="status-icon" id="statusIcon">✅</div>
+        <div>
+          <div class="status-title" id="statusTitle">Access Granted</div>
+          <div class="status-detail" id="statusDetail">Welcome to Dandiya Fest!</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Manual Fallback Entry -->
+    <div class="manual-card">
+      <label class="manual-label" for="scanInput">Or manual roll number entry</label>
+      <div class="input-group">
+        <input type="text" id="scanInput" placeholder="e.g. UTU-D26-31" autocomplete="off" spellcheck="false">
+        <button class="btn-verify" onclick="verifyManualPass()">Verify</button>
+      </div>
+    </div>
+
+    <!-- Recent Gate Activity Log -->
+    <div class="history-card">
+      <div class="history-title">
+        <span>Recent Entry Logs</span>
+        <span id="logCount" style="font-size: 11px; font-weight: normal; color: var(--text-muted);">0 entries</span>
+      </div>
+      <div class="history-list" id="historyList">
+        <div style="text-align: center; color: var(--text-muted); font-size: 13px; padding: 12px;">
+          No passes scanned yet in this session.
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Local html5-qrcode bundle with CDN fallback -->
+  <script src="/html5-qrcode.min.js"></script>
+  <script>
+    if (typeof Html5Qrcode === 'undefined') {
+      const fallbackScript = document.createElement('script');
+      fallbackScript.src = 'https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js';
+      fallbackScript.addEventListener('load', () => window.dispatchEvent(new Event('html5qrcode:ready')));
+      fallbackScript.addEventListener('error', () => {
+        document.getElementById('cameraSelect').innerHTML = '<option value="">Scanner library unavailable</option>';
+      });
+      document.head.appendChild(fallbackScript);
+    }
+  </script>
+
+  <script>
+    // State management
+    let html5QrCode = null;
+    let isCameraRunning = false;
+    let camerasInitialized = false;
+    let isProcessing = false;
+    let activeRollNumber = null;
+    let soundEnabled = true;
+    let lastScanCode = null;
+    let lastScanTimestamp = 0;
+    const SCAN_COOLDOWN_MS = 2200; // Prevent spamming duplicate scans of the same pass
+    const verificationQueue = [];
+    const queuedRollNumbers = new Set();
+
+    // Counters
+    let totalScans = 0;
+    let grantedScans = 0;
+    let deniedScans = 0;
+    const historyEntries = [];
+
+    // Web Audio Sound Synthesizer (Zero dependencies, instant crisp feedback)
+    let audioCtx = null;
+    function playBeep(type) {
+      if (!soundEnabled) return;
+      try {
+        if (!audioCtx) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        if (type === 'granted') {
+          // Cheerful chime: E5 (659Hz) -> A5 (880Hz)
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(659.25, now);
+          osc.frequency.setValueAtTime(880, now + 0.08);
+          gain.gain.setValueAtTime(0.25, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.32);
+          osc.start(now);
+          osc.stop(now + 0.32);
+        } else {
+          // Warning buzzer: Low dissonant tone (180Hz)
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(220, now);
+          osc.frequency.setValueAtTime(160, now + 0.1);
+          gain.gain.setValueAtTime(0.35, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+          osc.start(now);
+          osc.stop(now + 0.4);
+        }
+      } catch (e) {
+        console.warn('Audio feedback failed:', e);
+      }
+    }
+
+    function toggleSound() {
+      soundEnabled = !soundEnabled;
+      const btn = document.getElementById('soundToggleBtn');
+      if (soundEnabled) {
+        btn.classList.add('active');
+        btn.innerHTML = '🔊 Sound';
+      } else {
+        btn.classList.remove('active');
+        btn.innerHTML = '🔇 Mute';
+      }
+    }
+
+    // Initialize Cameras
+    async function initCameras() {
+      if (camerasInitialized) return;
+      const cameraSelect = document.getElementById('cameraSelect');
+      if (typeof Html5Qrcode === 'undefined') {
+        cameraSelect.innerHTML = '<option value="">Scanner library unavailable</option>';
+        return;
+      }
+
+      try {
+        const devices = await Html5Qrcode.getCameras();
+        cameraSelect.innerHTML = '';
+        camerasInitialized = true;
+
+        if (devices && devices.length > 0) {
+          devices.forEach((device, index) => {
+            const opt = document.createElement('option');
+            opt.value = device.id;
+            opt.text = device.label || `Camera ${index + 1}`;
+            cameraSelect.appendChild(opt);
+          });
+          await startCamera(devices[0].id);
+        } else {
+          cameraSelect.innerHTML = '<option value="">No cameras detected</option>';
+        }
+      } catch (err) {
+        console.error('Camera init error:', err);
+        cameraSelect.innerHTML = '<option value="">Camera access needed</option>';
+      }
+    }
+
+    // Toggle Camera Start / Stop
+    async function toggleCamera() {
+      if (isCameraRunning) {
+        await stopCamera();
+      } else {
+        const selectedId = document.getElementById('cameraSelect').value;
+        await startCamera(selectedId);
+      }
+    }
+
+    async function startCamera(cameraId) {
+      if (isCameraRunning) await stopCamera();
+
+      try {
+        if (typeof Html5Qrcode === 'undefined') {
+          throw new Error('The QR scanner library is unavailable.');
+        }
+
+        html5QrCode = new Html5Qrcode("reader");
+        const config = {
+          fps: 15,
+          qrbox: { width: 220, height: 220 },
+          aspectRatio: 1.0
+        };
+
+        const cameraSource = cameraId ? { deviceId: { exact: cameraId } } : { facingMode: "environment" };
+
+        await html5QrCode.start(
+          cameraSource,
+          config,
+          onScanSuccess,
+          onScanFailure
+        );
+
+        isCameraRunning = true;
+        document.getElementById('cameraBtnIcon').textContent = '⏹️';
+        document.getElementById('cameraBtnText').textContent = 'Stop Cam';
+        document.getElementById('toggleCameraBtn').classList.add('active');
+        document.getElementById('overlay').style.display = 'flex';
+      } catch (err) {
+        console.error('Failed to start camera:', err);
+        document.getElementById('overlay').style.display = 'none';
+        document.getElementById('cameraBtnIcon').textContent = '📹';
+        document.getElementById('cameraBtnText').textContent = 'Start Cam';
+        document.getElementById('toggleCameraBtn').classList.remove('active');
+      }
+    }
+
+    async function stopCamera() {
+      if (html5QrCode && isCameraRunning) {
+        try {
+          await html5QrCode.stop();
+          html5QrCode.clear();
+        } catch (e) {
+          console.warn('Error stopping scanner:', e);
+        }
+      }
+      isCameraRunning = false;
+      document.getElementById('cameraBtnIcon').textContent = '📹';
+      document.getElementById('cameraBtnText').textContent = 'Start Cam';
+      document.getElementById('toggleCameraBtn').classList.remove('active');
+      document.getElementById('overlay').style.display = 'none';
+    }
+
+    async function onCameraSelectChange() {
+      const selectedId = document.getElementById('cameraSelect').value;
+      if (selectedId && isCameraRunning) {
+        await startCamera(selectedId);
+      }
+    }
+
+    // QR Code Callback
+    function onScanSuccess(decodedText) {
+      const now = Date.now();
+      const cleanCode = decodedText.trim();
+
+      // Debounce consecutive scans of the same code
+      if (cleanCode === lastScanCode && (now - lastScanTimestamp) < SCAN_COOLDOWN_MS) {
+        return;
+      }
+
+      lastScanCode = cleanCode;
+      lastScanTimestamp = now;
+
+      // Visual camera flash feedback
+      const flash = document.getElementById('flashOverlay');
+      flash.classList.add('flash-active');
+      setTimeout(() => flash.classList.remove('flash-active'), 120);
+
+      enqueueVerification(cleanCode);
+    }
+
+    function onScanFailure(error) {
+      // Normal continuous frame search; no need to log every non-QR frame
+    }
+
+    // Manual Form Submission
+    function verifyManualPass() {
+      const input = document.getElementById('scanInput');
+      const rollNumber = input.value.trim();
+      if (!rollNumber) {
+        input.focus();
+        return;
+      }
+      enqueueVerification(rollNumber);
+      input.value = '';
+      input.focus();
+    }
+
+    // Allow Enter key in manual input
+    document.getElementById('scanInput').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') verifyManualPass();
+    });
+
+    function enqueueVerification(rollNumber) {
+      const cleanRollNumber = rollNumber.trim();
+      if (!cleanRollNumber || queuedRollNumbers.has(cleanRollNumber) || activeRollNumber === cleanRollNumber) {
+        return;
+      }
+
+      queuedRollNumbers.add(cleanRollNumber);
+      verificationQueue.push(cleanRollNumber);
+      if (isProcessing) {
+        const banner = document.getElementById('statusBanner');
+        banner.style.display = 'block';
+        banner.className = 'status-pending';
+        document.getElementById('statusIcon').textContent = '⏳';
+        document.getElementById('statusTitle').textContent = 'SCAN QUEUED';
+        document.getElementById('statusDetail').textContent = 'The current verification will finish first.';
+      }
+      processNextVerification();
+    }
+
+    // Process scans in order so a busy server does not silently drop a pass.
+    async function processNextVerification() {
+      if (isProcessing) return;
+      const rollNumber = verificationQueue.shift();
+      if (!rollNumber) return;
+
+      queuedRollNumbers.delete(rollNumber);
+      isProcessing = true;
+      activeRollNumber = rollNumber;
+      totalScans++;
+      document.getElementById('statTotal').textContent = totalScans;
+
+      const banner = document.getElementById('statusBanner');
+      const icon = document.getElementById('statusIcon');
+      const title = document.getElementById('statusTitle');
+      const detail = document.getElementById('statusDetail');
+
+      try {
+        const response = await fetch('/api/verify-pass', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ rollNumber })
+        });
+        const data = await response.json();
+        if (!response.ok && response.status !== 400) {
+          throw new Error(data.message || `Gate server returned HTTP ${response.status}.`);
+        }
+
+        banner.style.display = 'block';
+
+        if (data.success) {
+          grantedScans++;
+          document.getElementById('statGranted').textContent = grantedScans;
+          banner.className = 'status-granted';
+          icon.textContent = '🎉';
+          title.textContent = 'ACCESS GRANTED';
+          detail.textContent = (data.message || 'Access granted.').replace('✅ ACCESS GRANTED: ', '');
+          playBeep('granted');
+
+          addHistoryEntry({
+            roll: rollNumber,
+            detail: data.message || 'Access granted.',
+            status: 'GRANTED',
+            time: new Date().toLocaleTimeString()
+          });
+        } else {
+          deniedScans++;
+          document.getElementById('statDenied').textContent = deniedScans;
+          banner.className = 'status-denied';
+
+          const isDuplicate = data.message && data.message.includes('ALREADY USED');
+          icon.textContent = isDuplicate ? '🚨' : '❌';
+          title.textContent = isDuplicate ? 'PASS ALREADY USED' : 'ACCESS DENIED';
+          detail.textContent = data.message || 'Invalid Pass / Entry Rejected';
+          playBeep('denied');
+
+          addHistoryEntry({
+            roll: rollNumber,
+            detail: data.message || 'Invalid pass / entry rejected.',
+            status: isDuplicate ? 'DUPLICATE' : 'INVALID',
+            time: new Date().toLocaleTimeString()
+          });
+        }
+      } catch (err) {
+        console.error('Pass verification request failed:', err);
+        banner.style.display = 'block';
+        banner.className = 'status-denied';
+        icon.textContent = '⚠️';
+        title.textContent = 'VERIFICATION ERROR';
+        detail.textContent = 'Could not verify this pass. Check the gate server connection and try again.';
+        playBeep('denied');
+        addHistoryEntry({
+          roll: rollNumber,
+          detail: err.message || 'Verification request failed.',
+          status: 'ERROR',
+          time: new Date().toLocaleTimeString()
+        });
+      } finally {
+        setTimeout(() => {
+          isProcessing = false;
+          activeRollNumber = null;
+          processNextVerification();
+        }, 800);
+      }
+    }
+
+    // Add entry to Live History Table
+    function addHistoryEntry(entry) {
+      historyEntries.unshift(entry);
+      const list = document.getElementById('historyList');
+
+      let tagClass = 'tag-granted';
+      if (entry.status === 'DUPLICATE') tagClass = 'tag-duplicate';
+      if (entry.status === 'INVALID' || entry.status === 'ERROR') tagClass = 'tag-invalid';
+
+      const item = document.createElement('div');
+      item.className = 'history-item';
+      const left = document.createElement('div');
+      left.className = 'history-left';
+      const roll = document.createElement('span');
+      roll.className = 'history-name';
+      roll.textContent = entry.roll;
+      const detail = document.createElement('span');
+      detail.className = 'history-roll';
+      detail.textContent = entry.detail.replace(/^[✅🚨❌]\s*/, '');
+      left.append(roll, detail);
+
+      const right = document.createElement('div');
+      right.className = 'history-right';
+      const tag = document.createElement('span');
+      tag.className = `history-tag ${tagClass}`;
+      tag.textContent = entry.status;
+      const time = document.createElement('span');
+      time.className = 'history-time';
+      time.textContent = entry.time;
+      right.append(tag, time);
+
+      item.append(left, right);
+      if (historyEntries.length === 1) {
+        list.replaceChildren(item);
+      } else {
+        list.prepend(item);
+      }
+
+      document.getElementById('logCount').textContent = `${historyEntries.length} entries`;
+    }
+
+    // Initialize on window load
+    window.addEventListener('load', initCameras);
+    window.addEventListener('html5qrcode:ready', initCameras);
+  </script>
+</body>
+</html>
